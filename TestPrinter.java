@@ -1,15 +1,12 @@
 package main;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 public class TestPrinter {
 
 	public static void main(String[] args) {
 		
 		// Initialize Objects
 		Channel printChannel = new Channel();
-		Printer p = new Printer(60,printChannel);
+		Printer p = new Printer(printChannel);
 		
 		printChannel.put(1);
 		printChannel.put(2);

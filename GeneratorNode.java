@@ -1,56 +1,70 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GeneratorNode implements Runnable{
 	
-	private final int STARTING_VALUE;
+	private AtomicBoolean running;  //signals to other objects to stop execution.
+	private final int STARTING_VALUE = 1;
+	private final int STOPPING_VALUE = -1;
+	private int STOP; //how many ints do you want?
+	
 	private Channel integerFeed;
-	private ArrayList<Channel> inputChannels;
+	private ArrayList<Channel> hamNodeInputChannels;
 	private Channel printChannel;
 	
 	
-	public GeneratorNode(Channel intFeed, Channel p, ArrayList<Channel> inputs) {
-		super();
-		this.STARTING_VALUE = 1;
+	public GeneratorNode(Channel intFeed, Channel p, ArrayList<Channel> inputs, AtomicBoolean r, int stop) {
+		this.STOP = stop;
 		this.integerFeed = intFeed;
-		this.inputChannels = inputs;
+		this.hamNodeInputChannels = inputs;
 		this.printChannel = p;
+		this.running = r;
 	}
 	
-	public void miniStart() {
-		// Kicks off the DataFlow
-		printChannel.put(STARTING_VALUE);
+	//This code snippet gets called many times so I abstracted it.
+	private void sendToHamNodes(int n) {
+		for( Channel c : hamNodeInputChannels) {
+			c.put(n);
+		}
 	}
 	
 	
 	public void start() {
-		// Kicks off the DataFlow
-		printChannel.put(STARTING_VALUE);
-		
-		for( Channel c : inputChannels) {
-			c.put(STARTING_VALUE);
-		}
-		
 		Thread thread = new Thread(this);
 		thread.start();
 	}
 
 	@Override
 	public void run() {
+		//Everyone can start
+		this.running.set(true);
 		System.out.println("Generator Started");
-		//Searches for result from the Feed
-		//Delegates integer to printChannel and feeds back to input channels
-		while(true) {
+		
+		printChannel.put(STARTING_VALUE);
+		this.STOP--;
+		
+		sendToHamNodes(STARTING_VALUE);
+		
+		while(running.get()) {
+			//request next integer, decrement, print, and feed integer back into the system.
 			int ham = integerFeed.take();
-			System.out.println("your new ham : "+ham);
+			this.STOP--;
 			printChannel.put(ham);
-			for( Channel c : inputChannels) {
-				c.put(ham);
-			}	
+			sendToHamNodes(ham);	
+			
+			if(STOP == 0) {
+				//Everyone should stop
+				this.running.set(false);
+			}
 		}
+		
+		//send stop message to HamNodes
+		sendToHamNodes(STOPPING_VALUE);
+		printChannel.put(STOPPING_VALUE);
+		System.out.println("Generator : stopped");
 	}
-	
-	
-
+		
 }

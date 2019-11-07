@@ -1,12 +1,15 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestHammingMachine {
 
 	public static void main(String[] args) {
 		
 		// Initialize
+		AtomicBoolean processFlag = new AtomicBoolean(false);
+		int answers = 60;
 		
 		// In
 		Channel twoIn = new Channel();
@@ -24,9 +27,9 @@ public class TestHammingMachine {
 		Channel fiveOut = new Channel();
 		
 		ArrayList<Channel> NODEOUT = new ArrayList<Channel>(3);
-		NODEOUT.add(twoIn);
-		NODEOUT.add(threeIn);
-		NODEOUT.add(fiveIn);
+		NODEOUT.add(twoOut);
+		NODEOUT.add(threeOut);
+		NODEOUT.add(fiveOut);
 		
 		//Initialize Hamming Nodes
 		HammingNode TwoNode = new HammingNode(2,twoIn,twoOut);
@@ -37,13 +40,11 @@ public class TestHammingMachine {
 		Channel printChannel = new Channel();
 		Channel threeInOneOut = new Channel();
 		
-		SelectHammingInt Select = new SelectHammingInt(NODEOUT,threeInOneOut);
-		GeneratorNode Generator = new GeneratorNode(threeInOneOut,printChannel,NODEIN);
-		Printer P = new Printer(60,printChannel);
+		SelectHammingInt Select = new SelectHammingInt(NODEOUT,threeInOneOut,processFlag);
+		GeneratorNode Generator = new GeneratorNode(threeInOneOut,printChannel,NODEIN,processFlag,answers);
+		Printer P = new Printer(printChannel);
 		
 		// Start-up
-		
-		
 		Generator.start();
 		P.start();
 		Select.start();
@@ -51,9 +52,6 @@ public class TestHammingMachine {
 		TwoNode.start();
 		ThreeNode.start();
 		FiveNode.start();
-		
-		
-		
 
 	}
 

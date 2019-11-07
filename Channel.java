@@ -6,7 +6,6 @@ public class Channel {
 	
 	private LinkedBlockingQueue<Integer> queue;
 	
-	
 	public Channel() {
 		this.queue = new LinkedBlockingQueue<Integer>();
 	}

@@ -1,17 +1,10 @@
 package main;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class Printer implements Runnable{
 	
 	private Channel jobs;
-	private final int size;
-	private AtomicInteger completed;
 
-	public Printer(int size, Channel printJobs) {
-		this.size = size;
-		this.completed = new AtomicInteger(0);
+	public Printer(Channel printJobs) {
 		this.jobs = printJobs;
 	}
 	
@@ -22,19 +15,20 @@ public class Printer implements Runnable{
 	
 	@Override
 	public void run() {
+		
 		while(true) {
 			int job= jobs.take();
-			this.print(job);
-			completed.set(completed.get()+1);
-			if(completed.get() == size) {
+			// Stopping message for last integer to print
+			if(job == -1) {
 				break;
 			}
+			print(job);
 		}
+		//Checks that loop exits.
+		System.out.println("Print : Complete");
 		
 	}
 
-	
-	
 	private void print(int job) {
 		System.out.println(job);
 		
